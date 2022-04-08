@@ -1,4 +1,8 @@
+﻿using System;
+using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NzCovidPass.Core.Models;
 using NzCovidPass.Core.Shared;
@@ -49,10 +53,8 @@ namespace NzCovidPass.Core.Verification
             response.EnsureSuccessStatusCode();
 
             var document = await response
-                .Content
-                .ReadFromJsonAsync<DecentralizedIdentifierDocument>()
+                .Content.ReadFromJsonAsync<DecentralizedIdentifierDocument>()
                 .ConfigureAwait(false);
-
             _logger.LogDebug("Successfully retrieved DID document '{Document}'", document);
 
             return document;

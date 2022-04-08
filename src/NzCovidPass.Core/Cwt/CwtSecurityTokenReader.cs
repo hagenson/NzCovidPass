@@ -1,4 +1,5 @@
-using System.Formats.Cbor;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using NzCovidPass.Core.Cbor;
 using NzCovidPass.Core.Shared;
@@ -22,7 +23,8 @@ namespace NzCovidPass.Core.Cwt
         /// <inheritdoc />
         public void ReadToken(CwtSecurityTokenReaderContext context)
         {
-            ArgumentNullException.ThrowIfNull(context);
+            if (context == null)
+                throw new ArgumentNullException("context");
 
             var base32Payload = AddBase32Padding(context.Payload);
 
@@ -32,7 +34,7 @@ namespace NzCovidPass.Core.Cwt
 
                 var decodedPayloadBytes = Base32.ToBytes(base32Payload);
 
-                _logger.LogDebug("Decoded base-32 payload bytes (hex) '{Payload}'", Convert.ToHexString(decodedPayloadBytes));
+                _logger.LogDebug("Decoded base-32 payload bytes (hex) '{Payload}'", Convert.ToBase64String(decodedPayloadBytes));
 
                 if (!TryReadCoseStructure(decodedPayloadBytes, out var decodedCoseStructure) || decodedCoseStructure is null)
                 {
@@ -60,7 +62,7 @@ namespace NzCovidPass.Core.Cwt
                 var payloadByteString = decodedCoseStructure[2] as CborByteString;
                 var signatureByteString = decodedCoseStructure[3] as CborByteString;
 
-                if (!TryReadData(headerByteString!, out var headerData) || headerData is null)
+                if (!TryReadData(headerByteString, out var headerData) || headerData is null)
                 {
                     _logger.LogError("Unable to read CWT header data");
 
@@ -69,7 +71,7 @@ namespace NzCovidPass.Core.Cwt
                     return;
                 }
 
-                if (!TryReadData(payloadByteString!, out var payloadData) || payloadData is null)
+                if (!TryReadData(payloadByteString, out var payloadData) || payloadData is null)
                 {
                     _logger.LogError("Unable to read CWT payload data");
 
@@ -79,9 +81,9 @@ namespace NzCovidPass.Core.Cwt
                 }
 
                 var token = new CwtSecurityToken(
-                    new CwtSecurityToken.Header(headerData, headerByteString!.Value),
-                    new CwtSecurityToken.Payload(payloadData, payloadByteString!.Value),
-                    new CwtSecurityToken.Signature(signatureByteString!.Value));
+                    new CwtSecurityToken.Header(headerData, headerByteString.Value),
+                    new CwtSecurityToken.Payload(payloadData, payloadByteString.Value),
+                    new CwtSecurityToken.Signature(signatureByteString.Value));
 
                 context.Succeed(token);
             }
@@ -90,27 +92,22 @@ namespace NzCovidPass.Core.Cwt
                 _logger.LogError(formatException, "Failed to decode base-32 payload");
 
                 context.Fail(CwtSecurityTokenReaderContext.InvalidBase32Payload);
-            }
-            catch (CborContentException cborContentException)
-            {
-                _logger.LogError(cborContentException, "Failed to decode CBOR structure");
-
-                context.Fail(CwtSecurityTokenReaderContext.FailedToDecodeCborStructure);
+                throw;
             }
         }
 
-        private bool TryReadCoseStructure(byte[] decodedPayloadBytes, out CborArray? coseStructure)
+        private bool TryReadCoseStructure(byte[] decodedPayloadBytes, out CborArray coseStructure)
         {
-            var cborReader = new CborReader(decodedPayloadBytes);
+            var cborReader = new Dahomey.Cbor.Serialization.CborReader(decodedPayloadBytes);
 
-            if (!IsCoseSingleSignerDataObject(cborReader))
-            {
-                _logger.LogError("Unable to read payload as COSE single signer structure");
+            //if (!IsCoseSingleSignerDataObject(cborReader))
+            //{
+            //    _logger.LogError("Unable to read payload as COSE single signer structure");
 
-                coseStructure = null;
+            //    coseStructure = null;
 
-                return false;
-            }
+            //    return false;
+            //}
 
             if (!cborReader.TryReadArray(out coseStructure) || coseStructure is null)
             {
@@ -124,10 +121,9 @@ namespace NzCovidPass.Core.Cwt
             return true;
         }
 
-        private static bool TryReadData(CborByteString byteString, out IReadOnlyDictionary<object, object>? data)
+        private static bool TryReadData(CborByteString byteString, out IReadOnlyDictionary<object, object> data)
         {
-            var cborReader = new CborReader(byteString.Value);
-
+            var cborReader = new Dahomey.Cbor.Serialization.CborReader(byteString.Value);
             if (!cborReader.TryReadMap(out var cborMap) || cborMap is null)
             {
                 data = null;
@@ -152,21 +148,25 @@ namespace NzCovidPass.Core.Cwt
             return base32Payload;
         }
 
-        private static bool IsCoseSingleSignerDataObject(CborReader reader)
+        private static bool IsCoseSingleSignerDataObject(Dahomey.Cbor.Serialization.CborReader reader)
         {
             // https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml
-            const CborTag CoseSingleSignerTag = (CborTag) 18;
+            const int CoseSingleSignerTag = 18;
 
-            var state = reader.PeekState();
+            if (reader.GetCurrentDataItemType() != Dahomey.Cbor.Serialization.CborDataItemType.Signed)
+                return false;
+            var mrk = reader.GetBookmark();
+            var state = reader.ReadInt32();
 
-            if (state != CborReaderState.Tag)
+
+            if (state != CoseSingleSignerTag)
             {
+                reader.ReturnToBookmark(mrk);
                 return false;
             }
 
-            var tag = reader.ReadTag();
 
-            return tag == CoseSingleSignerTag;
+            return true;
         }
 
         private bool IsValidCoseSingleSignerStructure(CborArray coseStructure)

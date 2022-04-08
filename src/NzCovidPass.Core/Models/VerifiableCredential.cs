@@ -1,3 +1,4 @@
+﻿using System.Collections.Generic;
 using NzCovidPass.Core.Shared;
 
 namespace NzCovidPass.Core.Models

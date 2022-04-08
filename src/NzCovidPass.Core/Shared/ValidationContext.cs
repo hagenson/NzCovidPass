@@ -1,3 +1,6 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace NzCovidPass.Core.Shared
 {
     /// <summary>
@@ -5,7 +8,7 @@ namespace NzCovidPass.Core.Shared
     /// </summary>
     public abstract class ValidationContext
     {
-        private List<FailureReason>? _failureReasons;
+        private List<FailureReason> _failureReasons;
         private bool _failCalled;
         private bool _succeedCalled;
 
@@ -30,7 +33,7 @@ namespace NzCovidPass.Core.Shared
         /// Gets the reasons why validation has failed.
         /// </summary>
         public IEnumerable<FailureReason> FailureReasons =>
-            (IEnumerable<FailureReason>?) _failureReasons ?? Array.Empty<FailureReason>();
+            (IEnumerable<FailureReason>) _failureReasons ?? Array.Empty<FailureReason>();
 
         /// <summary>
         /// Indicates that validation has failed for this context.
@@ -52,8 +55,6 @@ namespace NzCovidPass.Core.Shared
         /// <param name="failureReason">A <see cref="FailureReason" /> instance describing the failure.</param>
         public virtual void Fail(FailureReason failureReason)
         {
-            ArgumentNullException.ThrowIfNull(failureReason);
-
             Fail();
 
             if (_failureReasons is null)
@@ -73,7 +74,8 @@ namespace NzCovidPass.Core.Shared
         /// <param name="failureReasons">A collection of <see cref="FailureReason" /> instances describing the failures.</param>
         public virtual void Fail(IEnumerable<FailureReason> failureReasons)
         {
-            ArgumentNullException.ThrowIfNull(failureReasons);
+            if (failureReasons == null)
+                throw new ArgumentNullException("failureReasons");
 
             Fail();
 
@@ -114,6 +116,15 @@ namespace NzCovidPass.Core.Shared
         /// </summary>
         /// <param name="Code">A unique code for the failure.</param>
         /// <param name="Message">A message describing the failure.</param>
-        public readonly record struct FailureReason(string Code, string Message);
+        public readonly struct FailureReason
+        {
+            public FailureReason(string code, string message)
+            {
+                Code = code;
+                Message = message;
+            }
+            public readonly string Code;
+            public readonly string Message;
+        }
     }
 }

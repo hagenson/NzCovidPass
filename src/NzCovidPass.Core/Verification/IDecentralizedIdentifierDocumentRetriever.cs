@@ -1,3 +1,4 @@
+﻿using System.Threading.Tasks;
 using NzCovidPass.Core.Models;
 namespace NzCovidPass.Core.Verification
 {

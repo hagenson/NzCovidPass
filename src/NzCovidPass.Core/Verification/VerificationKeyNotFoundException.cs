@@ -1,3 +1,5 @@
+﻿using System;
+
 namespace NzCovidPass.Core.Verification
 {
     /// <summary>
@@ -13,5 +15,11 @@ namespace NzCovidPass.Core.Verification
             : base(message)
         {
         }
+
+        public VerificationKeyNotFoundException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
     }
 }

@@ -1,3 +1,6 @@
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -98,7 +101,8 @@ namespace NzCovidPass.Core.Verification
             {
                 _logger.LogError(exception, "Failed to retrieved decentralized identifier document");
 
-                throw new VerificationKeyNotFoundException($"Unable to retrieve key for issuer '{issuer}'.");
+                throw new VerificationKeyNotFoundException($"Unable to retrieve key for issuer '{issuer}'.",
+                    exception);
             }
         }
 

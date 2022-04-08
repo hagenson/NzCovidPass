@@ -1,4 +1,7 @@
-using System.Formats.Cbor;
+﻿using System;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -37,7 +40,8 @@ namespace NzCovidPass.Core.Cwt
         /// <inheritdoc />
         public async Task ValidateTokenAsync(CwtSecurityTokenValidatorContext context)
         {
-            ArgumentNullException.ThrowIfNull(context);
+            if (context == null)
+                throw new ArgumentNullException("context");
 
             ValidateHeader(context);
             ValidatePayload(context);
@@ -184,7 +188,6 @@ namespace NzCovidPass.Core.Cwt
             var signatureStructure = BuildSignatureStructure(token);
 
             var cryptoProviderFactory = key.CryptoProviderFactory;
-
             if (!cryptoProviderFactory.IsSupportedAlgorithm(algorithm, key))
             {
                 _logger.LogError("Signature validation failed [Algorithm '{Algorithm}' is not supported for key type '{KeyType}']", algorithm, key.GetType().Name);
@@ -248,19 +251,19 @@ namespace NzCovidPass.Core.Cwt
             }
         }
 
-        private async Task<SecurityKey?> GetVerificationKeyAsync(CwtSecurityToken token)
+        private async Task<SecurityKey> GetVerificationKeyAsync(CwtSecurityToken token)
         {
             try
             {
                 return await _verificationKeyProvider
-                    .GetKeyAsync(token.Issuer!, token.KeyId!)
+                    .GetKeyAsync(token.Issuer, token.KeyId)
                     .ConfigureAwait(false);
             }
             catch (VerificationKeyNotFoundException verificationKeyNotFoundException)
             {
                 _logger.LogError(verificationKeyNotFoundException, "Failed to retrieve verification key.");
 
-                return null;
+                throw;
             }
         }
 
@@ -268,10 +271,12 @@ namespace NzCovidPass.Core.Cwt
         {
             // https://datatracker.ietf.org/doc/html/rfc8152#section-4.4
             // Note this process assumes a COSE_Sign1 structure, which NZ Covid passes should be.
-            var cborWriter = new CborWriter();
-
-            var signatureStructure = new object[]
+            using (var buf = (Microsoft.IO.RecyclableMemoryStream)memoryManager.GetStream())
             {
+                var cborWriter = new Dahomey.Cbor.Serialization.CborWriter(buf);
+
+                var signatureStructure = new object[]
+                {
                 // context
                 "Signature1",
                 // body_protected
@@ -280,11 +285,14 @@ namespace NzCovidPass.Core.Cwt
                 Array.Empty<byte>(),
                 // payload
                 token.PayloadBytes
-            };
+                };
 
-            cborWriter.WriteCollection(signatureStructure);
-
-            return cborWriter.Encode();
+                cborWriter.WriteCollection(signatureStructure);
+                buf.Flush();
+                return buf.ToArray(); ;
+            }
         }
+
+        private static readonly Microsoft.IO.RecyclableMemoryStreamManager memoryManager = new Microsoft.IO.RecyclableMemoryStreamManager();
     }
 }

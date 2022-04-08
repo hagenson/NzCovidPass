@@ -1,3 +1,4 @@
+﻿using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 
 namespace NzCovidPass.Core.Verification

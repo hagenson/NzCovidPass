@@ -1,3 +1,4 @@
+﻿using System;
 using NzCovidPass.Core.Shared;
 
 namespace NzCovidPass.Core.Cwt
@@ -8,7 +9,7 @@ namespace NzCovidPass.Core.Cwt
     public class CwtSecurityTokenReaderContext : ValidationContext
     {
         private readonly string _base32Payload;
-        private CwtSecurityToken? _token;
+        private CwtSecurityToken _token;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CwtSecurityTokenReaderContext" /> class.
@@ -35,7 +36,7 @@ namespace NzCovidPass.Core.Cwt
         /// Attempting to access when <see cref="ValidationContext.HasSucceeded" /> is <see langword="false" /> will throw an <see cref="InvalidOperationException" />.
         /// </para>
         /// </remarks>
-        public CwtSecurityToken Token => (HasSucceeded && _token is not null) ?
+        public CwtSecurityToken Token => (HasSucceeded && !(_token is null)) ?
             _token :
             throw new InvalidOperationException("Token has not been set.");
 
@@ -53,16 +54,16 @@ namespace NzCovidPass.Core.Cwt
         /// <summary>
         /// Invalid base-32 payload failure reason.
         /// </summary>
-        public static FailureReason InvalidBase32Payload => new(nameof(InvalidBase32Payload), "Payload must be a base-32 encoded string.");
+        public static FailureReason InvalidBase32Payload => new FailureReason(nameof(InvalidBase32Payload), "Payload must be a base-32 encoded string.");
 
         /// <summary>
         /// Failed to decode CBOR structure failure reason.
         /// </summary>
-        public static FailureReason FailedToDecodeCborStructure => new(nameof(FailedToDecodeCborStructure), "Failed to decode CBOR structure.");
+        public static FailureReason FailedToDecodeCborStructure => new FailureReason(nameof(FailedToDecodeCborStructure), "Failed to decode CBOR structure.");
 
         /// <summary>
         /// Invalid COSE structure failure reason.
         /// </summary>
-        public static FailureReason InvalidCoseStructure => new(nameof(InvalidCoseStructure), "Payload is not a valid COSE_Sign1 structure.");
+        public static FailureReason InvalidCoseStructure => new FailureReason(nameof(InvalidCoseStructure), "Payload is not a valid COSE_Sign1 structure.");
     }
 }

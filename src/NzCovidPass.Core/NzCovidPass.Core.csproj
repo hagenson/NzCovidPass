@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Title>NzCovidPass.Core</Title>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>    
@@ -16,10 +16,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>  
     <EmbedUntrackedSources>true</EmbedUntrackedSources>                       
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>    
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>    
     <GenerateDocumentationFile>true</GenerateDocumentationFile>              
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>    
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
@@ -29,24 +28,30 @@
   <PropertyGroup>
     <AnalysisMode>Default</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <Nullable>disable</Nullable>
   </PropertyGroup>  
 
   <ItemGroup>    
+    <PackageReference Include="Dahomey.Cbor" Version="1.16.1" />    
+    <PackageReference Include="Microsoft.Azure.KeyVault.Cryptography" Version="3.0.5" />    
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />    
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.14.1" />    
-    <PackageReference Include="System.Text.Json" Version="6.0.0" />
-    <PackageReference Include="System.Formats.Cbor" Version="6.0.0" />    
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />    
 
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />    
+
+    <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />    
+
+    <PackageReference Include="System.Text.Json" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
-    <None Include="..\..\LICENSE" Pack="true" PackagePath="\"/>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

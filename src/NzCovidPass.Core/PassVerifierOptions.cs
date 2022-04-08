@@ -1,3 +1,5 @@
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.IdentityModel.Tokens;
 
 namespace NzCovidPass.Core
@@ -20,12 +22,12 @@ namespace NzCovidPass.Core
         /// <summary>
         /// Gets or sets the collection of valid issuers that will be used to check against the token's issuer.
         /// </summary>
-        public IReadOnlySet<string> ValidIssuers { get; set; } = Defaults.ValidIssuers.ToHashSet();
+        public ISet<string> ValidIssuers { get; set; } = new HashSet<string>(Defaults.ValidIssuers);
 
         /// <summary>
         /// Gets or sets the collection of valid algorithms that will be used to check against the token's algorithm.
         /// </summary>
-        public IReadOnlySet<string> ValidAlgorithms { get; set; } = Defaults.ValidAlgorithms.ToHashSet();
+        public ISet<string> ValidAlgorithms { get; set; } = new HashSet<string>(Defaults.ValidAlgorithms);
 
         /// <summary>
         /// Gets or sets the amount of time to cache security keys for.

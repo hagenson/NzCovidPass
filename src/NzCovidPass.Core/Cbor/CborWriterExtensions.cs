@@ -1,4 +1,6 @@
-using System.Formats.Cbor;
+﻿
+using System;
+using System.Collections.Generic;
 
 namespace NzCovidPass.Core.Cbor
 {
@@ -12,9 +14,9 @@ namespace NzCovidPass.Core.Cbor
         /// </summary>
         /// <param name="writer">The <see cref="CborWriter" /> to write to.</param>
         /// <param name="collection">The collection to write.</param>
-        public static void WriteCollection(this CborWriter writer, IReadOnlyCollection<object> collection)
+        public static void WriteCollection(this Dahomey.Cbor.Serialization.CborWriter writer, IReadOnlyCollection<object> collection)
         {
-            writer.WriteStartArray(collection.Count);
+            writer.WriteBeginArray(collection.Count);
 
             foreach (var item in collection)
             {
@@ -22,7 +24,7 @@ namespace NzCovidPass.Core.Cbor
                 {
                     // Currently only supporting what is needed for this library.
                     case string s:
-                        writer.WriteTextString(s);
+                        writer.WriteString(s);
                         break;
 
                     case byte[] b:
@@ -34,7 +36,7 @@ namespace NzCovidPass.Core.Cbor
                 }
             }
 
-            writer.WriteEndArray();
+            writer.WriteEndArray(collection.Count);
         }
     }
 }

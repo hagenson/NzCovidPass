@@ -1,3 +1,6 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using NzCovidPass.Core.Models;
@@ -37,15 +40,15 @@ namespace NzCovidPass.Core.Cwt
         /// <summary>
         /// Gets the value of the <c>jti</c> claim.
         /// </summary>
-        public override string? Id => Jti;
+        public override string Id => Jti;
 
         /// <summary>
         /// Gets the value of the <c>iss</c> claim.
         /// </summary>
-        public override string? Issuer => _payload.Issuer;
+        public override string Issuer => _payload.Issuer;
 
         /// <inheritdoc />
-        public override SecurityKey? SecurityKey => null;
+        public override SecurityKey SecurityKey => null;
 
         /// <summary>
         /// Gets or sets the <see cref="SecurityKey" /> that signed the token.
@@ -53,7 +56,7 @@ namespace NzCovidPass.Core.Cwt
         /// <remarks>
         /// This property will only be set once the token signature been validated.
         /// </remarks>
-        public override SecurityKey? SigningKey { get; set; }
+        public override SecurityKey SigningKey { get; set; }
 
         /// <summary>
         /// Gets the value of the <c>nbf</c> claim, represented as a UTC <see cref="DateTime" />.
@@ -68,12 +71,12 @@ namespace NzCovidPass.Core.Cwt
         /// <summary>
         /// Gets the identifier of the key used to sign the token from the CWT header.
         /// </summary>
-        public string? KeyId => _header.KeyId;
+        public string KeyId => _header.KeyId;
 
         /// <summary>
         /// Gets the algorithm used to sign the token from the CWT header.
         /// </summary>
-        public string? Algorithm => _header.Algorithm;
+        public string Algorithm => _header.Algorithm;
 
         /// <summary>
         /// Gets the value of the <c>cti</c> claim from the CWT payload, mapped to a JTI value.
@@ -81,7 +84,7 @@ namespace NzCovidPass.Core.Cwt
         /// <remarks>
         /// <see href="https://nzcp.covid19.health.nz/#mapping-jti-cti" />
         /// </remarks>
-        public string? Jti => _payload.Jti;
+        public string Jti => _payload.Jti;
 
         /// <summary>
         /// Gets the value of the <c>cti</c> claim from the CWT payload.
@@ -116,7 +119,7 @@ namespace NzCovidPass.Core.Cwt
         /// </para>
         /// <see href="https://nzcp.covid19.health.nz/#cwt-claims" />
         /// </remarks>
-        public VerifiableCredential<PublicCovidPass>? Credential => _payload.Credential;
+        public VerifiableCredential<PublicCovidPass> Credential => _payload.Credential;
 
         /// <summary>
         /// Gets the raw bytes of the CWT header.
@@ -158,7 +161,7 @@ namespace NzCovidPass.Core.Cwt
             /// <summary>
             /// Gets the identifier of the key used to sign the token.
             /// </summary>
-            public string? KeyId
+            public string KeyId
             {
                 get
                 {
@@ -171,14 +174,14 @@ namespace NzCovidPass.Core.Cwt
 
                     var keyIdBytes = keyId as byte[];
 
-                    return Encoding.UTF8.GetString(keyIdBytes!);
+                    return Encoding.UTF8.GetString(keyIdBytes);
                 }
             }
 
             /// <summary>
             /// Gets the algorithm used to sign the token.
             /// </summary>
-            public string? Algorithm
+            public string Algorithm
             {
                 get
                 {
@@ -224,7 +227,7 @@ namespace NzCovidPass.Core.Cwt
             /// <summary>
             /// Gets the value of the <c>cti</c> claim, mapped to a JTI value.
             /// </summary>
-            public string? Jti => Cti == Guid.Empty ? null : $"urn:uuid:{Cti:D}";
+            public string Jti => Cti == Guid.Empty ? null : $"urn:uuid:{Cti:D}";
 
             /// <summary>
             /// Gets the value of the <c>cti</c> claim.
@@ -242,14 +245,14 @@ namespace NzCovidPass.Core.Cwt
 
                     var ctiBytes = cti as byte[];
 
-                    return new Guid(ctiBytes!);
+                    return new Guid(ctiBytes);
                 }
             }
 
             /// <summary>
             /// Gets the value of <c>iss</c> claim.
             /// </summary>
-            public string? Issuer => ReadClaimValue<string>(_claims, ClaimIds.Payload.Iss);
+            public string Issuer => ReadClaimValue<string>(_claims, ClaimIds.Payload.Iss);
 
             /// <summary>
             /// Gets the value of <c>exp</c> claim.
@@ -270,35 +273,35 @@ namespace NzCovidPass.Core.Cwt
             /// <summary>
             /// Gets the value of <c>vc</c> claim.
             /// </summary>
-            public VerifiableCredential<PublicCovidPass>? Credential
+            public VerifiableCredential<PublicCovidPass> Credential
             {
                 get
                 {
                     var credential = ReadRawClaimValue(_claims, ClaimIds.Payload.Vc);
 
-                    if (credential is null || credential is not IDictionary<object, object>)
+                    if (credential is null || !(credential is IDictionary<object, object>))
                     {
                         return null;
                     }
 
                     var credentialMap = credential as IDictionary<object, object>;
-                    var credentialSubjectMap = credentialMap!["credentialSubject"] as IDictionary<object, object>;
+                    var credentialSubjectMap = credentialMap["credentialSubject"] as IDictionary<object, object>;
 
                     var version = credentialMap["version"] as string;
                     var context = credentialMap["@context"] as IEnumerable<object>;
                     var type = credentialMap["type"] as IEnumerable<object>;
-                    var givenName = credentialSubjectMap!["givenName"] as string;
-                    var familyName = credentialSubjectMap!["familyName"] as string;
-                    var dateOfBirth = credentialSubjectMap!["dob"] as string;
+                    var givenName = credentialSubjectMap["givenName"] as string;
+                    var familyName = credentialSubjectMap["familyName"] as string;
+                    var dateOfBirth = credentialSubjectMap["dob"] as string;
 
                     return new VerifiableCredential<PublicCovidPass>(
-                        version!,
-                        context!.OfType<string>().ToList(),
-                        type!.OfType<string>().ToList(),
+                        version,
+                        context.OfType<string>().ToList(),
+                        type.OfType<string>().ToList(),
                         new PublicCovidPass(
-                            givenName!,
-                            familyName!,
-                            DateTimeOffset.Parse(dateOfBirth!)));
+                            givenName,
+                            familyName,
+                            DateTimeOffset.Parse(dateOfBirth)));
                 }
             }
 
@@ -333,7 +336,7 @@ namespace NzCovidPass.Core.Cwt
             public byte[] Bytes => _signatureBytes;
         }
 
-        private static T? ReadClaimValue<T>(IReadOnlyDictionary<object, object> claims, object claimId)
+        private static T ReadClaimValue<T>(IReadOnlyDictionary<object, object> claims, object claimId)
         {
             var rawClaimValue = ReadRawClaimValue(claims, claimId);
 
@@ -345,7 +348,7 @@ namespace NzCovidPass.Core.Cwt
             return (T) Convert.ChangeType(rawClaimValue, typeof(T));
         }
 
-        private static object? ReadRawClaimValue(IReadOnlyDictionary<object, object> claims, object claimId)
+        private static object ReadRawClaimValue(IReadOnlyDictionary<object, object> claims, object claimId)
         {
             if (claims.TryGetValue(claimId, out var rawClaimValue))
             {

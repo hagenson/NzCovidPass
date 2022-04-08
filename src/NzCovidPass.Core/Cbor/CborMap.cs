@@ -1,3 +1,7 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace NzCovidPass.Core.Cbor
 {
     /// <summary>
@@ -47,14 +51,19 @@ namespace NzCovidPass.Core.Cbor
             return dictionary;
         }
 
-        private static object ConvertCborObject(CborObject @object) => @object switch
+        private static object ConvertCborObject(CborObject @object)
         {
-            CborMap map => map.ToGenericDictionary(),
-            CborArray array => array.Values.Select(v => ConvertCborObject(v)).ToList(),
-            CborByteString byteString => byteString.Value,
-            CborTextString textString => textString.Value,
-            CborInteger integer => integer.Value,
-            _ => throw new NotSupportedException($"Unexpected CBOR object type '{@object.GetType().FullName}'.")
-        };
+            if (@object is CborMap map)
+                return map.ToGenericDictionary();
+            else if (@object is CborArray array)
+                return array.Values.Select(v => ConvertCborObject(v)).ToList();
+            else if (@object is CborByteString byteString)
+                return byteString.Value;
+            else if (@object is CborTextString textString)
+                return textString.Value;
+            else if (@object is CborInteger integer)
+                return integer.Value;
+            else throw new NotSupportedException($"Unexpected CBOR object type '{@object.GetType().FullName}'.");
+        }
     }
 }

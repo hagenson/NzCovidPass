@@ -1,3 +1,6 @@
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NzCovidPass.Core.Cwt;
@@ -59,14 +62,15 @@ namespace NzCovidPass.Core
         /// <returns>A task representing the asynchronous operation. The result contains the details of the verification process.</returns>
         public async Task<PassVerifierContext> VerifyAsync(string passPayload)
         {
-            ArgumentNullException.ThrowIfNull(passPayload);
+            if (passPayload == null)
+                throw new ArgumentNullException("passPayload");
 
             var context = new PassVerifierContext();
 
             _logger.LogDebug("Verifying pass payload '{Payload}'", passPayload);
 
             // Check the payload adheres to expected format.
-            var passComponents = passPayload.Split('/', StringSplitOptions.None);
+            var passComponents = passPayload.Split('/');
 
             ValidatePassComponents(context, passComponents);
 

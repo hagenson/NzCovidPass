@@ -1,3 +1,5 @@
+﻿using System;
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using NzCovidPass.Core.Cwt;
 using NzCovidPass.Core.Verification;
@@ -21,10 +23,11 @@ namespace NzCovidPass.Core.Shared
         /// <returns>The updated <see cref="IServiceCollection" />.</returns>
         public static IServiceCollection AddNzCovidPassVerifier(
             this IServiceCollection services,
-            Action<PassVerifierOptions>? configureOptions = null,
-            Action<HttpClient>? configureClient = null)
+            Action<PassVerifierOptions> configureOptions = null,
+            Action<HttpClient> configureClient = null)
         {
-            ArgumentNullException.ThrowIfNull(services);
+            if (services == null)
+                throw new ArgumentNullException("services");
 
             services.Configure<PassVerifierOptions>(configureOptions ?? DefaultConfigureOptions);
 

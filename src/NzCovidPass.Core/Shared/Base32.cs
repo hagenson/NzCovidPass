@@ -1,3 +1,5 @@
+﻿using System;
+
 namespace NzCovidPass.Core.Shared
 {
     /// <summary>
@@ -21,7 +23,8 @@ namespace NzCovidPass.Core.Shared
         /// <returns>The decoded output.</returns>
         public static byte[] ToBytes(string input)
         {
-            ArgumentNullException.ThrowIfNull(input);
+            if (input == null)
+                throw new ArgumentNullException("input");
 
             if (input.Length == 0)
             {

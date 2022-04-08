@@ -1,3 +1,5 @@
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -11,14 +13,18 @@ namespace NzCovidPass.Core.Models
     /// </remarks>
     internal class ContextJsonConverter : JsonConverter<IReadOnlyList<string>>
     {
-        public override IReadOnlyList<string>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
-            reader.TokenType switch
+        public override IReadOnlyList<string> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            switch (reader.TokenType)
             {
-                JsonTokenType.StartArray => JsonSerializer.Deserialize<List<string>>(ref reader, options),
-                JsonTokenType.String => new List<string>() { reader.GetString()! },
-                _ => throw new JsonException("Unexpected JSON data for context."),
+                case JsonTokenType.StartArray:
+                    return JsonSerializer.Deserialize<List<string>>(ref reader, options);
+                case JsonTokenType.String:
+                    return new List<string>() { reader.GetString() };
+                default:
+                    throw new JsonException("Unexpected JSON data for context.");
             };
-
+        }
         public override void Write(Utf8JsonWriter writer, IReadOnlyList<string> value, JsonSerializerOptions options)
         {
             JsonSerializer.Serialize(writer, value, options);
